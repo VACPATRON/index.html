@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Prr Prr Pawww</title>
+<style>
+html,body{
+margin:0;height:100%;overflow:hidden;background:black;
+font-family:monospace;
+}
+canvas{position:absolute;top:0;left:0}
+
+.center{
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+font-size:42px;
+font-weight:bold;
+color:#ff44ff;
+text-shadow:
+-3px 0 red,
+3px 0 cyan,
+0 0 20px #ff44ff,
+0 0 50px #ff44ff;
+animation:shake .12s infinite;
+z-index:100;
+pointer-events:none;
+}
+
+@keyframes shake{
+0%{transform:translate(-50%,-50%) translate(-3px,2px)}
+50%{transform:translate(-50%,-50%) translate(3px,-2px)}
+100%{transform:translate(-50%,-50%) translate(-2px,1px)}
+}
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+<div class="center">PRR PRR GRRR PAWWW</div>
+
+<script>
+const canvas=c=document.getElementById("c");
+const ctx=c.getContext("2d");
+
+function resize(){
+c.width=innerWidth;
+c.height=innerHeight;
+}
+resize();
+addEventListener("resize",resize);
+
+let stars=[];
+let cats=[];
+
+for(let i=0;i<150;i++){
+stars.push({
+x:Math.random()*innerWidth,
+y:Math.random()*innerHeight,
+s:Math.random()*2
+});
+}
+
+function addCat(x,y){
+cats.push({
+x:x,
+y:y,
+vx:(Math.random()-.5)*4,
+vy:Math.random()*2+1,
+size:20+Math.random()*25
+});
+}
+
+for(let i=0;i<100;i++){
+addCat(Math.random()*innerWidth,-Math.random()*500);
+}
+
+function drawCat(cat){
+
+let s=cat.size;
+
+ctx.save();
+
+ctx.translate(cat.x,cat.y);
+
+ctx.fillStyle=`hsl(${Math.random()*360},100%,60%)`;
+
+ctx.fillRect(s*.3,0,s,s);
+ctx.fillRect(0,0,s*.3,s*.3);
+ctx.fillRect(s,0,s*.3,s*.3);
+
+ctx.fillStyle="white";
+ctx.fillRect(s*.5,s*.4,3,3);
+ctx.fillRect(s*.8,s*.4,3,3);
+
+ctx.fillStyle="pink";
+ctx.fillRect(s*.65,s*.7,4,4);
+
+ctx.restore();
+}
+
+function glitch(){
+
+let img=ctx.getImageData(0,0,c.width,c.height);
+
+let shift=(Math.random()*20)-10;
+
+ctx.putImageData(img,shift,0);
+
+}
+
+function animate(){
+
+ctx.fillStyle="rgba(0,0,0,.25)";
+ctx.fillRect(0,0,c.width,c.height);
+
+stars.forEach(st=>{
+ctx.fillStyle="white";
+ctx.fillRect(st.x,st.y,st.s,st.s);
+
+st.y+=0.2;
+if(st.y>innerHeight) st.y=0;
+});
+
+cats.forEach(cat=>{
+
+cat.y+=cat.vy;
+cat.x+=cat.vx;
+
+if(cat.y>innerHeight+100){
+cat.y=-100;
+cat.x=Math.random()*innerWidth;
+}
+
+drawCat(cat);
+
+});
+
+if(Math.random()<0.15)glitch();
+
+requestAnimationFrame(animate);
+}
+
+animate();
+
+let audioStarted=false;
+
+function startAudio(){
+
+if(audioStarted)return;
+audioStarted=true;
+
+let actx=new(window.AudioContext||window.webkitAudioContext)();
+
+//retro synth
+setInterval(()=>{
+
+let o=actx.createOscillator();
+let g=actx.createGain();
+
+o.type="square";
+o.frequency.value=[220,330,440,550][Math.floor(Math.random()*4)];
+
+g.gain.value=.02;
+
+o.connect(g);
+g.connect(actx.destination);
+
+o.start();
+
+o.stop(actx.currentTime+.2);
+
+},350);
+
+}
+
+function interact(e){
+
+startAudio();
+
+let x=e.touches?e.touches[0].clientX:e.clientX;
+let y=e.touches?e.touches[0].clientY:e.clientY;
+
+for(let i=0;i<15;i++){
+addCat(x+(Math.random()*150-75),y);
+}
+
+// miyav
+let actx=new(window.AudioContext||window.webkitAudioContext)();
+
+let o=actx.createOscillator();
+let g=actx.createGain();
+
+o.type="triangle";
+o.frequency.setValueAtTime(800,actx.currentTime);
+o.frequency.exponentialRampToValueAtTime(300,actx.currentTime+.25);
+
+g.gain.value=.08;
+
+o.connect(g);
+g.connect(actx.destination);
+
+o.start();
+o.stop(actx.currentTime+.25);
+
+}
+
+addEventListener("click",interact);
+addEventListener("touchstart",interact);
+
+</script>
+
+</body>
+</html>
